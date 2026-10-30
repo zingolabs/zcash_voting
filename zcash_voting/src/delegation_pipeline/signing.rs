@@ -2,60 +2,19 @@
 //!
 //! The crate never holds seed material. A software wallet signs the prepared
 //! request itself; a Keystone wallet supplies the device signature either from
-//! memory or from the sidecar row it was stored in.
+//! memory or from the sidecar row it was stored in. The signer types live in
+//! [`crate::delegation_driver`]; this module resolves them against the
+//! pipeline's prepared bundles and sidecar rows.
 
 use std::sync::Arc;
 
 use crate::{
-    delegate::{
-        DelegationSigningRequest, PreparedDelegationBundle, PreparedSigner, SignedDelegationBundle,
-    },
+    delegate::{PreparedDelegationBundle, PreparedSigner, SignedDelegationBundle},
     types::VotingError,
 };
 
 use super::{DelegationPipeline, WalletDbOpener};
-
-/// Produces the account SpendAuth signature for a delegation.
-///
-/// The wallet keeps its seed; the crate hands over only the account index,
-/// network, seed fingerprint, sighash, and randomizer, and receives the
-/// 64-byte signature back.
-pub trait SpendAuthSigner: Send + Sync {
-    fn sign(&self, request: DelegationSigningRequest) -> Result<[u8; 64], VotingError>;
-}
-
-impl<F> SpendAuthSigner for F
-where
-    F: Fn(DelegationSigningRequest) -> Result<[u8; 64], VotingError> + Send + Sync,
-{
-    fn sign(&self, request: DelegationSigningRequest) -> Result<[u8; 64], VotingError> {
-        self(request)
-    }
-}
-
-/// Where a Keystone signature comes from.
-#[derive(Clone, Debug)]
-pub enum KeystoneSignatureSource {
-    /// The signature stored for the bundle through
-    /// `VotingDb::store_keystone_signatures_batch`.
-    Stored,
-    /// A signature the host holds in memory.
-    ///
-    /// Once a bundle has verified it, the pipeline persists it under the
-    /// bundle, so a later pass or a restart recovers it through `Stored`
-    /// without asking the device to sign again.
-    Provided { sig: Vec<u8>, sighash: Vec<u8> },
-}
-
-/// Signer for one delegation bundle.
-#[derive(Clone)]
-pub enum DelegationSigner {
-    /// A software wallet that derives and randomizes its own SpendAuth key.
-    Software(Arc<dyn SpendAuthSigner>),
-    /// A Keystone device signed the redacted PCZT from
-    /// [`DelegationPipeline::keystone_request`].
-    Keystone(KeystoneSignatureSource),
-}
+pub use crate::delegation_driver::{DelegationSigner, KeystoneSignatureSource, SpendAuthSigner};
 
 impl<W: WalletDbOpener> DelegationPipeline<W> {
     /// Resolves the SpendAuth signature for a prepared bundle.

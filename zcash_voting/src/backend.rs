@@ -5,9 +5,17 @@
 //! rest of the implementation remains backend-agnostic.
 
 pub use voting_crypto_deps::{halo2_gadgets, halo2_proofs, pasta_curves};
+/// The wallet-database crate.
+///
+/// Under `zakura` it is always part of the stack. Under `lrz` it arrives only
+/// with the opt-in `wallet-db` feature, so a consumer that supplies
+/// its own wallet storage keeps `zcash_client_sqlite` — and the rusqlite
+/// generation it pins — out of the resolve entirely.
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+pub use zakura_wallet_lib::client_sqlite as zcash_client_sqlite;
 pub use zakura_wallet_lib::{
-    client_backend as zcash_client_backend, client_sqlite as zcash_client_sqlite,
-    keys as zcash_keys, orchard, pczt, primitives as zcash_primitives,
+    client_backend as zcash_client_backend, keys as zcash_keys, orchard, pczt,
+    primitives as zcash_primitives,
 };
 
 #[cfg(feature = "lrz")]

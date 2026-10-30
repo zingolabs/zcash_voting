@@ -12,7 +12,7 @@ publish = false
 
 [features]
 default = ["zakura"]
-lrz = ["zcash_voting/lrz", "voting-crypto-deps/lrz", "dep:lrz_zcash_protocol"]
+lrz = ["zcash_voting/lrz", "zcash_voting/wallet-db", "voting-crypto-deps/lrz", "dep:lrz_zcash_protocol"]
 zakura = ["zcash_voting/zakura", "voting-crypto-deps/default", "dep:zcash_protocol"]
 
 [dependencies]
@@ -20,7 +20,9 @@ anyhow = "1"
 libc = "0.2"
 hmac = "0.12"
 pbkdf2 = { version = "0.12", default-features = false }
-rusqlite = "0.37"
+# Single rusqlite generation for the whole workspace (see the root
+# `[patch.crates-io]`): 0.32, the last generation on libsqlite3-sys 0.30.x.
+rusqlite = { version = "0.32", features = ["bundled"] }
 serde = { version = "1", features = ["derive"] }
 sha2 = "0.10"
 serde_json = "1"

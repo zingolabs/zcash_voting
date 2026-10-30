@@ -22,7 +22,19 @@ voting-crypto-deps = { version = "=0.4.0", default-features = false }
 # Zakura 4.0 publishes protocol as `zakura-protocol` with lib name `zcash_protocol`.
 # Packages select one of these through the `zakura` / `lrz` features.
 zcash_protocol = { version = "=4.0.0", package = "zakura-protocol", default-features = false }
-lrz_zcash_protocol = { version = "0.11.0-pre.0", package = "zcash_protocol" }
+lrz_zcash_protocol = { version = "0.11.0", package = "zcash_protocol" }
+
+# Local forks and test-only vendored copies used while porting the LRZ stack.
+# `zakura-wallet-lib` is a zingolabs fork of the facade with the LRZ
+# wallet-database slice split into the opt-in `lrz-client-sqlite` feature; the
+# two vendored librustzcash sqlite crates are re-based onto rusqlite 0.32 so
+# the `lrz` + `wallet-db` test builds unify at libsqlite3-sys 0.30.x instead of
+# conflicting with rusqlite 0.37's libsqlite3-sys 0.35 on `links = "sqlite3"`.
+[patch.crates-io]
+zakura-wallet-lib = { path = "fork/zakura-wallet-lib" }
+zcash_client_sqlite = { path = "fork/vendored/zcash_client_sqlite-0.23.0" }
+zakura-client-sqlite = { path = "fork/vendored/zakura-client-sqlite-0.1.0-rc9.5" }
+schemerz-rusqlite = { path = "fork/vendored/schemerz-rusqlite-0.371.0" }
 
 [profile.test.package.imt-tree]
 opt-level = 3

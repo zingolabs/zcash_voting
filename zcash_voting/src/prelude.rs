@@ -20,19 +20,21 @@ pub use crate::chain_submission::{
 };
 
 pub use crate::delegate::gather_delegation_lwd_inputs;
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+pub use crate::delegate::load_account_keys;
 pub use crate::delegate::LightwalletdBranchIdProvider;
 pub use crate::delegate::{
-    branch_id_for_height, display_memo, load_account_keys, pczt_sighash, setup as setup_delegation,
+    branch_id_for_height, display_memo, pczt_sighash, setup as setup_delegation,
     signing_request as delegation_signing_request, spend_auth_signature, BranchIdProvider,
     DelegationAccountKeys, DelegationKeys, DelegationPhase, DelegationProgress, DelegationProof,
     DelegationProofCompletion, DelegationProofStatus, DelegationSetup, DelegationSigningRequest,
     DelegationSubmission, KeystoneSigningRequest, PreparedDelegationReport, PreparedSigner,
     SignedDelegationBundle,
 };
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+pub use crate::delegate::{prepare_delegation_bundle, prepare_delegation_bundle_for_target};
 pub use crate::delegate::{
-    prepare_delegation_bundle, prepare_delegation_bundle_for_target,
-    PrepareDelegationBundleForTargetParams, PrepareDelegationBundleParams,
-    PreparedDelegationBundle,
+    PrepareDelegationBundleForTargetParams, PrepareDelegationBundleParams, PreparedDelegationBundle,
 };
 pub use crate::delegation_capability::{
     export_delegation_capability, import_delegation_capability, DelegationCapabilityBundleV1,
@@ -40,9 +42,13 @@ pub use crate::delegation_capability::{
     ImportDelegationCapabilityParams, MAX_DELEGATION_CAPABILITY_BUNDLES,
     MAX_DELEGATION_CAPABILITY_JSON_BYTES,
 };
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+pub use crate::delegation_driver::{
+    DelegationDriver, DelegationSigner, KeystoneSignatureSource, SpendAuthSigner,
+};
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub use crate::delegation_pipeline::{
-    start_proving_cache_warmup, DelegationDriver, DelegationPipeline, DelegationSigner,
-    KeystoneSignatureSource, SpendAuthSigner, SqliteWalletDbOpener, VotingEligibilityReport,
+    start_proving_cache_warmup, DelegationPipeline, SqliteWalletDbOpener, VotingEligibilityReport,
     WalletDbOpener,
 };
 pub use crate::error::{
@@ -74,10 +80,11 @@ pub use crate::pir::{
     connect_pir, connect_pir_blocking, negotiated_pir_layout, select_pir_endpoint, PirEndpoint,
 };
 pub use crate::pir::{PirFleet, PirProofSource, PirSession};
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+pub use crate::precompute::{note_witnesses, stored_note_witnesses};
 pub use crate::precompute::{
-    note_witnesses, precompute_pir_proofs, precompute_snapshot_bundles, stored_note_witnesses,
-    validate_cached_pir_proofs, verify_witness, PirPrecomputeReport,
-    SnapshotBundlePrecomputeReport,
+    precompute_pir_proofs, precompute_snapshot_bundles, validate_cached_pir_proofs, verify_witness,
+    PirPrecomputeReport, SnapshotBundlePrecomputeReport,
 };
 pub use crate::recovery::{
     recoverable_commitment_bundle, round_snapshot, DelegationRecovery, RecoverableCommitmentBundle,
@@ -94,10 +101,13 @@ pub use crate::round_drive::{
     RoundDriveReporter, RoundDriveReporterBridge, RoundDriver, RoundHostSource,
     RoundHostSourceBridge, RoundQuiescence, RoundRunReport, RoundStepFailureRecord, RoundWorkTally,
 };
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub use crate::selection::select_notes_with_lwd;
+pub use crate::selection::DelegationWalletInputs;
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub use crate::selection::{
     gather_delegation_wallet_inputs, select_notes_with_wallet_db, select_snapshot_note_infos,
-    select_snapshot_notes, DelegationWalletInputs, GatherDelegationWalletParams,
+    select_snapshot_notes, GatherDelegationWalletParams,
 };
 pub use crate::session::{
     resume_plan, CompletedVoteChoice, CompletedVoteDisplay, Decision, DelegationRecoveryWork,

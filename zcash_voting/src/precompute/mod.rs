@@ -11,11 +11,14 @@
 //! for caller-oriented precompute orchestration.
 
 #[allow(unused_imports)]
-pub(crate) use crate::backend::{pasta_curves, zcash_client_sqlite};
+pub(crate) use crate::backend::pasta_curves;
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+pub(crate) use crate::backend::zcash_client_sqlite;
 use std::borrow::Borrow;
 
 use std::sync::Arc;
 
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 use zcash_client_sqlite::WalletDb;
 
 use crate::{
@@ -54,6 +57,7 @@ pub struct SnapshotBundlePrecomputeReport {
 ///
 /// This is the FFI-friendly variant for callers that pass the round tree state
 /// with the note-witness request.
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub fn note_witnesses<C, P, CL, R>(
     db: &VotingDb,
     round_id: &str,
@@ -77,6 +81,7 @@ where
     )
 }
 
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub(crate) fn observe_note_witnesses<C, P, CL, R>(
     db: &VotingDb,
     round_id: &str,
@@ -129,6 +134,7 @@ where
 /// This is the FFI-friendly variant for callers that already persisted the
 /// round tree state through [`VotingDb`] and should not reach into storage
 /// query helpers.
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub fn stored_note_witnesses<C, P, CL, R>(
     db: &VotingDb,
     round_id: &str,
@@ -150,6 +156,7 @@ where
     )
 }
 
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub(crate) fn observe_stored_note_witnesses<C, P, CL, R>(
     db: &VotingDb,
     round_id: &str,

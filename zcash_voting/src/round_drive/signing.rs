@@ -5,12 +5,11 @@
 //! the run loop — which bundles the host still owes a signature for — and the
 //! loop turns a non-empty answer into a handoff.
 
+use super::selection;
 use crate::{
     round_planning::Obligation, session::NextStep, ChainTransport, DelegationSigner,
     KeystoneSignatureSource, RoundExecutor, RoundHostContext, VotingError,
 };
-
-use super::selection;
 
 /// Delegation bundles the host must supply a signature for before this run
 /// can dispatch anything.

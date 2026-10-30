@@ -32,6 +32,13 @@ zakura = [
     "zakura-wallet-lib/zakura",
     "dep:zcash_protocol",
 ]
+# Wallet-database slice of the LRZ stack: re-exports `zcash_client_sqlite` and
+# enables the WalletDb-taking APIs (note selection, witnesses, delegation
+# bundle preparation, the delegation pipeline). Opt-in so an LRZ consumer that
+# supplies its own wallet storage keeps `zcash_client_sqlite` — and its
+# rusqlite generation — out of the resolve entirely. Ignored under `zakura`,
+# where the wallet database is always part of the stack.
+wallet-db = ["zakura-wallet-lib/lrz-client-sqlite"]
 test-fixtures = []
 
 [dependencies]
@@ -70,7 +77,12 @@ tonic = { version = "0.14", features = ["channel", "tls-webpki-roots", "tls-ring
 vote-commitment-tree = { path = "../vote-commitment-tree", version = "=0.8.0", default-features = false }
 vote-commitment-tree-client = { path = "../vote-commitment-tree-client", version = "=0.10.0", default-features = false, features = ["http"] }
 
-rusqlite = { version = "0.37", features = ["bundled"] }
+# Single rusqlite generation for the whole workspace: 0.32, the last
+# generation on libsqlite3-sys 0.30.x, so the LRZ resolve can share a
+# dependency graph with consumers embedding sqlx 0.8. The Zakura and
+# wallet-database sqlite crates are vendored (see the root `[patch.crates-io]`)
+# with the same requirement.
+rusqlite = { version = "0.32", features = ["bundled"] }
 
 anyhow = "1"
 thiserror = "2"
@@ -82,8 +94,8 @@ nonempty = "0.11"
 
 zcash_protocol = { workspace = true, optional = true }
 lrz_zcash_protocol = { workspace = true, optional = true }
-zakura-wallet-lib = { version = "=0.1.0-rc9.2", default-features = false }
-uuid = "1.23.1"
+zakura-wallet-lib = { version = "=0.1.0-rc9.5", default-features = false }
+uuid = { version = "1.23.1", features = ["v4"] }
 
 [dev-dependencies]
 anyhow = "1"

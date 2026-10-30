@@ -14,13 +14,17 @@
 //! ```
 
 mod keystone;
+// The keystone tests reuse the wallet-database fixture from `tests`.
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 #[cfg(test)]
 #[path = "delegate/tests/keystone.rs"]
 mod keystone_tests;
 
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+pub(crate) use crate::backend::zcash_client_sqlite;
 #[allow(unused_imports)]
 pub(crate) use crate::backend::{
-    orchard, pasta_curves, pczt, zcash_client_backend, zcash_client_sqlite, zcash_primitives,
+    orchard, pasta_curves, pczt, zcash_client_backend, zcash_primitives,
 };
 pub use crate::phases::DelegationPhase;
 
@@ -31,12 +35,13 @@ use std::{
 
 pub use crate::lwd::branch_id_for_height;
 use crate::note_bundling::BundlePolicy;
-pub use crate::selection::{
-    gather_delegation_wallet_inputs, DelegationWalletInputs, GatherDelegationWalletParams,
-};
+pub use crate::selection::DelegationWalletInputs;
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+pub use crate::selection::GatherDelegationWalletParams;
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 use crate::selection::{
-    gather_delegation_wallet_inputs_for_target, wallet_fully_scanned_height,
-    GatherDelegationWalletForTargetParams,
+    gather_delegation_wallet_inputs, gather_delegation_wallet_inputs_for_target,
+    wallet_fully_scanned_height, GatherDelegationWalletForTargetParams,
 };
 use crate::{
     delegation_proof_coordination::{with_live_progress, DelegationProofIdentity},
@@ -50,6 +55,9 @@ use crate::{
     van_blinding::{VanBlinding, VanBlindingKey},
 };
 use zcash_client_backend::data_api::{Account, WalletRead};
+// Wallet-database seam: only compiled when a wallet database is part of the
+// selected stack (`zakura` always; `lrz` with the opt-in `wallet-db` feature).
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 use zcash_client_sqlite::{AccountUuid, WalletDb};
 use zcash_protocol::consensus::{NetworkConstants, Parameters};
 
@@ -563,6 +571,7 @@ pub async fn gather_delegation_lwd_inputs(
 ///
 /// Returns an error if round context initialization, wallet access, bundle
 /// preparation, or witness persistence fails.
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub fn prepare_delegation_bundle<C, P, CL, R>(
     voting_db: &VotingDb,
     wallet_db: &WalletDb<C, P, CL, R>,
@@ -580,6 +589,7 @@ where
     )
 }
 
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub(crate) fn observe_prepare_delegation_bundle<C, P, CL, R>(
     voting_db: &VotingDb,
     wallet_db: &WalletDb<C, P, CL, R>,
@@ -627,6 +637,7 @@ where
 }
 
 /// Runs this workflow with optional per-call diagnostics, including on errors.
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub fn prepare_delegation_bundle_with_report<C, P, CL, R>(
     voting_db: &VotingDb,
     wallet_db: &WalletDb<C, P, CL, R>,
@@ -659,6 +670,7 @@ where
 ///
 /// Returns an error if the target context differs from the delegation context,
 /// or if the normal delegation preparation checks fail.
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub fn prepare_delegation_bundle_for_target<C, P, CL, R>(
     voting_db: &VotingDb,
     wallet_db: &WalletDb<C, P, CL, R>,
@@ -676,6 +688,7 @@ where
     )
 }
 
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub(crate) fn observe_prepare_delegation_bundle_for_target<C, P, CL, R>(
     voting_db: &VotingDb,
     wallet_db: &WalletDb<C, P, CL, R>,
@@ -724,6 +737,7 @@ where
 }
 
 /// Runs this workflow with optional per-call diagnostics, including on errors.
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub fn prepare_delegation_bundle_for_target_with_report<C, P, CL, R>(
     voting_db: &VotingDb,
     wallet_db: &WalletDb<C, P, CL, R>,
@@ -753,6 +767,7 @@ where
     )
 }
 
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 fn prepare_delegation_bundle_inner<C, P, CL, R>(
     voting_db: &VotingDb,
     wallet_db: &WalletDb<C, P, CL, R>,
@@ -1088,6 +1103,7 @@ impl PreparedDelegationBundle {
     ///
     /// Callers that separately warm PIR rows can use this before proving without
     /// knowing how witness rows are cached.
+    #[cfg(any(feature = "zakura", feature = "wallet-db"))]
     pub fn ensure_witnesses<C, P, CL, R>(
         &self,
         voting_db: &VotingDb,
@@ -1100,6 +1116,7 @@ impl PreparedDelegationBundle {
         self.observe_ensure_witnesses(voting_db, wallet_db, &crate::ObservationScope::disabled())
     }
 
+    #[cfg(any(feature = "zakura", feature = "wallet-db"))]
     pub(crate) fn observe_ensure_witnesses<C, P, CL, R>(
         &self,
         voting_db: &VotingDb,
@@ -1156,6 +1173,7 @@ impl PreparedDelegationBundle {
     /// This is the prepared-bundle replacement for the older loose
     /// `PrecomputeDelegationInputs` path. It never recalculates bundle membership;
     /// the prepared bundle is the source of truth for notes, layout, and network.
+    #[cfg(any(feature = "zakura", feature = "wallet-db"))]
     pub fn precompute<C, P, CL, R>(
         &self,
         voting_db: &VotingDb,
@@ -1174,6 +1192,7 @@ impl PreparedDelegationBundle {
         )
     }
 
+    #[cfg(any(feature = "zakura", feature = "wallet-db"))]
     pub(crate) fn observe_precompute<C, P, CL, R>(
         &self,
         voting_db: &VotingDb,
@@ -1223,6 +1242,7 @@ impl PreparedDelegationBundle {
     }
 
     /// Runs this workflow with optional per-call diagnostics, including on errors.
+    #[cfg(any(feature = "zakura", feature = "wallet-db"))]
     pub fn precompute_with_report<C, P, CL, R>(
         &self,
         voting_db: &VotingDb,
@@ -1736,6 +1756,7 @@ impl PreparedDelegationBundle {
 /// Returns [`VotingError::InvalidInput`] for malformed UUIDs, missing accounts,
 /// or accounts without the required derivation/viewing-key material. Wallet DB
 /// read failures are returned as [`VotingError::Internal`].
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub fn load_account_keys<C, P, CL, R>(
     db: &WalletDb<C, P, CL, R>,
     account_uuid: &str,
@@ -1747,6 +1768,7 @@ where
     observe_load_account_keys(db, account_uuid, &crate::ObservationScope::disabled())
 }
 
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub(crate) fn observe_load_account_keys<C, P, CL, R>(
     db: &WalletDb<C, P, CL, R>,
     account_uuid: &str,
@@ -1803,6 +1825,7 @@ where
     operation_result
 }
 
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 fn parse_account_uuid(account_uuid: &str) -> Result<AccountUuid, VotingError> {
     let uuid = uuid::Uuid::parse_str(account_uuid).map_err(|e| VotingError::InvalidInput {
         message: format!("invalid account UUID: {e}"),
@@ -2525,6 +2548,10 @@ fn array64_slice(label: &str, value: &[u8]) -> Result<[u8; 64], VotingError> {
     })
 }
 
+// The delegation bundle tests construct a real `WalletDb`; they therefore run
+// only where the wallet-database seam exists (`zakura`, or `lrz` with
+// `wallet-db`).
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 #[cfg(test)]
 mod tests {
     mod observability;

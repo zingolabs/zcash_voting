@@ -35,6 +35,16 @@ pub mod config;
 pub(crate) mod confirmation;
 pub mod delegate;
 pub mod delegation_capability;
+/// The seam-free delegation contracts ([`DelegationDriver`] and the signer
+/// types) the round executor drives. Compiled in every configuration; hosts
+/// implement [`DelegationDriver`] with their own wallet plumbing where the
+/// wallet-database seam is compiled out.
+pub mod delegation_driver;
+/// Wallet-database-driven end-to-end delegation pipeline.
+///
+/// Only compiled where the wallet-database seam exists (`zakura`, or `lrz`
+/// with the opt-in `wallet-db` feature).
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub mod delegation_pipeline;
 mod delegation_proof_coordination;
 pub mod error;
@@ -105,9 +115,12 @@ pub use chain_submission::{
     ChainSubmissionTarget, ChainTransport, ChainTransportError, ChainTransportFailureKind,
     ChainTransportFuture, MAX_CHAIN_HTTP_RESPONSE_BYTES, MAX_CHAIN_SUBMISSION_DIAGNOSTIC_BYTES,
 };
+pub use delegation_driver::{
+    DelegationDriver, DelegationSigner, KeystoneSignatureSource, SpendAuthSigner,
+};
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub use delegation_pipeline::{
-    start_proving_cache_warmup, DelegationDriver, DelegationPipeline, DelegationSigner,
-    KeystoneSignatureSource, SpendAuthSigner, SqliteWalletDbOpener, VotingEligibilityReport,
+    start_proving_cache_warmup, DelegationPipeline, SqliteWalletDbOpener, VotingEligibilityReport,
     WalletDbOpener,
 };
 pub use error::{DelegationSetupField, VotingErrorKind, VotingErrorKindView, VotingErrorView};
@@ -166,9 +179,11 @@ pub use note_bundling::{
     MINIMUM_VOTING_WEIGHT_ZATOSHI,
 };
 pub use round::validate_bundle_index;
+pub use selection::DelegationWalletInputs;
+#[cfg(any(feature = "zakura", feature = "wallet-db"))]
 pub use selection::{
     gather_delegation_wallet_inputs, select_notes_with_wallet_db, select_snapshot_notes,
-    DelegationWalletInputs, GatherDelegationWalletParams,
+    GatherDelegationWalletParams,
 };
 pub use types::{
     validate_proposal_id, validate_round_params, validate_vote_decision, validate_vote_options,
