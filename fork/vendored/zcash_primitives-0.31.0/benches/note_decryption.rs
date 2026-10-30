@@ -1,0 +1,151 @@
+use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
+use rand::{Rng, rand_core::UnwrapErr, rngs::SysRng};
+use sapling::{
+    self, Diversifier, SaplingIvk,
+    note_encryption::{
+        CompactOutputDescription, PreparedIncomingViewingKey, SaplingDomain,
+        try_sapling_compact_note_decryption, try_sapling_note_decryption,
+    },
+    prover::mock::{MockOutputProver, MockSpendProver},
+    value::NoteValue,
+};
+use zcash_note_encryption::batch;
+use zcash_primitives::transaction::components::sapling::zip212_enforcement;
+use zcash_protocol::{
+    consensus::{NetworkUpgrade::Canopy, Parameters, TEST_NETWORK},
+    memo::Memo,
+    value::ZatBalance,
+};
+
+#[cfg(unix)]
+use pprof::criterion::{Output, PProfProfiler};
+
+/// The mask that clears the bits of the last little-endian byte at or above bit 251, the
+/// bit length of a Sapling incoming viewing key.
+const IVK_TOP_BYTE_MASK: u8 = 0x07;
+
+/// Samples a uniformly random Sapling incoming viewing key.
+fn random_ivk(rng: &mut impl Rng) -> SaplingIvk {
+    loop {
+        let mut bytes = [0u8; 32];
+        rng.fill_bytes(&mut bytes);
+        bytes[31] &= IVK_TOP_BYTE_MASK;
+        if let Some(ivk) = SaplingIvk::from_bytes(&bytes).into_option() {
+            return ivk;
+        }
+    }
+}
+
+fn bench_note_decryption(c: &mut Criterion) {
+    let mut rng = UnwrapErr(SysRng);
+    let height = TEST_NETWORK.activation_height(Canopy).unwrap();
+    let zip212_enforcement = zip212_enforcement(&TEST_NETWORK, height);
+
+    let valid_ivk = random_ivk(&mut rng);
+    let invalid_ivk = random_ivk(&mut rng);
+
+    // Construct a Sapling output.
+    let output = {
+        let diversifier = Diversifier([0; 11]);
+        let pa = valid_ivk.to_payment_address(diversifier).unwrap();
+
+        let mut builder = sapling::builder::Builder::new(
+            zip212_enforcement,
+            // We use the Coinbase bundle type because we don't need to use
+            // any inputs for this benchmark.
+            sapling::builder::BundleType::Coinbase,
+            sapling::Anchor::empty_tree(),
+        );
+        builder
+            .add_output(
+                None,
+                pa,
+                NoteValue::from_raw(100),
+                Memo::Empty.encode().into_bytes(),
+            )
+            .unwrap();
+        let (bundle, _) = builder
+            .build::<MockSpendProver, MockOutputProver, _, ZatBalance>(&[], &mut rng)
+            .unwrap()
+            .unwrap();
+        bundle.shielded_outputs()[0].clone()
+    };
+
+    let valid_ivk = PreparedIncomingViewingKey::new(&valid_ivk);
+    let invalid_ivk = PreparedIncomingViewingKey::new(&invalid_ivk);
+
+    {
+        let mut group = c.benchmark_group("sapling-note-decryption");
+        group.throughput(Throughput::Elements(1));
+
+        group.bench_function("valid", |b| {
+            b.iter(|| try_sapling_note_decryption(&valid_ivk, &output, zip212_enforcement).unwrap())
+        });
+
+        group.bench_function("invalid", |b| {
+            b.iter(|| try_sapling_note_decryption(&invalid_ivk, &output, zip212_enforcement))
+        });
+
+        let compact = CompactOutputDescription::from(output.clone());
+
+        group.bench_function("compact-valid", |b| {
+            b.iter(|| {
+                try_sapling_compact_note_decryption(&valid_ivk, &compact, zip212_enforcement)
+                    .unwrap()
+            })
+        });
+
+        group.bench_function("compact-invalid", |b| {
+            b.iter(|| {
+                try_sapling_compact_note_decryption(&invalid_ivk, &compact, zip212_enforcement)
+            })
+        });
+    }
+
+    {
+        let mut group = c.benchmark_group("sapling-batch-note-decryption");
+
+        for (nivks, noutputs) in [(1, 10), (10, 1), (10, 10), (50, 50)] {
+            let invalid_ivks: Vec<_> = std::iter::repeat_n(invalid_ivk.clone(), nivks).collect();
+            let valid_ivks: Vec<_> = std::iter::repeat_n(valid_ivk.clone(), nivks).collect();
+
+            let outputs: Vec<_> = std::iter::repeat_n(output.clone(), noutputs)
+                .map(|output| (SaplingDomain::new(zip212_enforcement), output))
+                .collect();
+
+            group.bench_function(BenchmarkId::new(format!("valid-{nivks}"), noutputs), |b| {
+                b.iter(|| batch::try_note_decryption(&valid_ivks, &outputs))
+            });
+
+            group.bench_function(
+                BenchmarkId::new(format!("invalid-{nivks}"), noutputs),
+                |b| b.iter(|| batch::try_note_decryption(&invalid_ivks, &outputs)),
+            );
+
+            let compact: Vec<_> = outputs
+                .into_iter()
+                .map(|(domain, output)| (domain, CompactOutputDescription::from(output)))
+                .collect();
+
+            group.bench_function(
+                BenchmarkId::new(format!("compact-valid-{nivks}"), noutputs),
+                |b| b.iter(|| batch::try_compact_note_decryption(&valid_ivks, &compact)),
+            );
+
+            group.bench_function(
+                BenchmarkId::new(format!("compact-invalid-{nivks}"), noutputs),
+                |b| b.iter(|| batch::try_compact_note_decryption(&invalid_ivks, &compact)),
+            );
+        }
+    }
+}
+
+#[cfg(unix)]
+criterion_group! {
+    name = benches;
+    config = Criterion::default().with_profiler(PProfProfiler::new(100, Output::Flamegraph(None)));
+    targets = bench_note_decryption
+}
+#[cfg(not(unix))]
+criterion_group!(benches, bench_note_decryption);
+criterion_main!(benches);

@@ -372,7 +372,8 @@ features = [
 default-features = false
 
 [dev-dependencies.proptest]
-version = "1.12"
+# Re-based from 1.12 for the workspace-join reason in the root Cargo.toml.
+version = ">=1, <1.7"
 
 [dev-dependencies.rand]
 version = "0.10"
