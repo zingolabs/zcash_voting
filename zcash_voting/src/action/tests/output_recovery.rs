@@ -39,7 +39,6 @@ fn assert_output_recovery(ledger_output_review: bool) {
         let enc_ciphertext: [u8; 580] = result.tx1_effects[start + 160..start + 740]
             .try_into()
             .unwrap();
-        #[cfg(feature = "lrz")]
         let enc_ciphertext =
             voting_crypto_deps::zcash_note_encryption::note_bytes::NoteBytesData(enc_ciphertext);
         let action = Action::from_parts(

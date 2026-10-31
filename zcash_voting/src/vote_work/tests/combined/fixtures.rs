@@ -5,7 +5,7 @@
 use super::super::fixtures::{executor_ready_to_cast, ROUND_ID};
 use crate::chain_submission::{ChainHttpRequest, ChainHttpResponse, ChainTransportFuture};
 use crate::delegate::{DelegationProofStatus, SignedDelegationBundle};
-use crate::delegation_pipeline::{DelegationDriver, DelegationSigner};
+use crate::delegation_driver::{DelegationDriver, DelegationSigner};
 use crate::helper::transport::{HelperFuture, HelperResponse, HelperTransport};
 use crate::{
     backend::pasta_curves::{

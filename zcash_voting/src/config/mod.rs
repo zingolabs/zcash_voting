@@ -993,7 +993,7 @@ fn validate_dynamic_config(
     validate_pir_layout(config.pir_layout)?;
     for round_id in config.rounds.keys() {
         validate_vote_round_id_hex(round_id).map_err(|e| VotingConfigError::DecodeFailed {
-            message: format!("invalid rounds key: {e}"),
+            message: format!("invalid rounds key {round_id}: {e}"),
         })?;
     }
     require_supported(

@@ -22,7 +22,7 @@ use std::sync::Arc;
 use zeroize::Zeroizing;
 
 use crate::delegate::{DelegationProgress, SignedDelegationBundle};
-use crate::delegation_pipeline::{DelegationDriver, DelegationSigner};
+use crate::delegation_driver::{DelegationDriver, DelegationSigner};
 use crate::pir::PirFleet;
 use crate::round::VotingDb;
 use crate::session::{Decision, NextStep, RoundPlan};

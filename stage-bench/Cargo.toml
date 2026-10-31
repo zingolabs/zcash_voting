@@ -12,23 +12,16 @@ publish = false
 # `make check` or `make test`.
 
 [features]
-default = ["zakura"]
-lrz = [
-    "zcash_voting/lrz",
-    "recovery-conformance/lrz",
-    "voting-crypto-deps/lrz",
-]
-zakura = [
-    "zcash_voting/zakura",
-    "recovery-conformance/zakura",
-    "voting-crypto-deps/default",
-]
+default = ["wallet-db"]
+# Application crate: drives the WalletDb-taking delegation pipeline, so the
+# seam is on by default.
+wallet-db = ["zcash_voting/wallet-db"]
 
 [dependencies]
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
-recovery-conformance = { path = "../recovery-conformance", default-features = false }
-rusqlite = "0.37"
+recovery-conformance = { path = "../recovery-conformance" }
+rusqlite = { version = ">=0.32, <0.38", features = ["bundled"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }

@@ -9,29 +9,16 @@ repository = "https://github.com/valargroup/zcash_voting"
 readme = "README.md"
 
 [features]
-default = ["zakura"]
-lrz = [
-    "voting-crypto-deps/lrz",
-    "voting-circuits/lrz",
-    "pir-client/upstream",
-    "pir-types/upstream",
-    "imt-tree/upstream",
-    "vote-commitment-tree/lrz",
-    "vote-commitment-tree-client/lrz",
-    "zakura-wallet-lib/lrz",
-    "dep:lrz_zcash_protocol",
-]
-zakura = [
-    "voting-crypto-deps/default",
-    "voting-circuits/default",
-    "pir-client/zakura",
-    "pir-types/zakura",
-    "imt-tree/zakura",
-    "vote-commitment-tree/zakura",
-    "vote-commitment-tree-client/zakura",
-    "zakura-wallet-lib/zakura",
-    "dep:zcash_protocol",
-]
+default = ["lrz"]
+# Compat no-op: this crate is single-stack LRZ (upstream librustzcash 0.31).
+# Kept so existing `features = ["lrz"]` wiring keeps working.
+lrz = []
+# Wallet-database slice: re-exports `zcash_client_sqlite` and enables the
+# WalletDb-taking APIs (note selection, witnesses, delegation bundle
+# preparation, the delegation pipeline). Opt-in so a consumer that supplies
+# its own wallet storage keeps `zcash_client_sqlite` — and the rusqlite
+# generation it pins — out of the resolve entirely.
+wallet-db = ["dep:zcash_client_sqlite"]
 test-fixtures = []
 
 [dependencies]
@@ -50,11 +37,11 @@ prost = "0.14"
 sha2 = "0.10"
 ed25519-dalek = "2"
 
-pir-client = { version = "=0.9.0", default-features = false }
-pir-types = { version = "=0.8.0", default-features = false }
+pir-client = { version = "=0.9.0", default-features = false, features = ["upstream"] }
+pir-types = { version = "=0.8.0", default-features = false, features = ["upstream"] }
 valar-spiral-rs = { version = "=0.5.3-rc.1", default-features = false }
 valar-ypir = { version = "=0.2.1", default-features = false }
-imt-tree = { version = "=0.7.0", default-features = false }
+imt-tree = { version = "=0.7.0", default-features = false, features = ["upstream"] }
 
 bytes = "1"
 http = "1"
@@ -67,10 +54,15 @@ rustls = { version = "0.23", default-features = false, features = ["ring", "std"
 tokio = { version = "1", features = ["rt-multi-thread", "time"] }
 tonic = { version = "0.14", features = ["channel", "tls-webpki-roots", "tls-ring"] }
 
-vote-commitment-tree = { path = "../vote-commitment-tree", version = "=0.8.0", default-features = false }
-vote-commitment-tree-client = { path = "../vote-commitment-tree-client", version = "=0.10.0", default-features = false, features = ["http"] }
+vote-commitment-tree = { path = "../vote-commitment-tree", version = "=0.8.0" }
+vote-commitment-tree-client = { path = "../vote-commitment-tree-client", version = "=0.10.0", features = ["http"] }
 
-rusqlite = { version = "0.37", features = ["bundled"] }
+# Tolerant range, deliberately not a pin: the rusqlite generation is decided
+# by the consumer's graph. zingolib pins =0.32.1 (the libsqlite3-sys 0.30.x
+# mapping its workspace is welded to via sqlx), so there zcash_voting resolves
+# at 0.32.1; here it floats to 0.37 to match zcash_client_sqlite 0.23. The
+# storage layer compiles against both generations unchanged.
+rusqlite = { version = ">=0.32, <0.38", features = ["bundled"] }
 
 anyhow = "1"
 thiserror = "2"
@@ -80,10 +72,16 @@ subtle = "2.6"
 voting-circuits = { workspace = true }
 nonempty = "0.11"
 
-zcash_protocol = { workspace = true, optional = true }
-lrz_zcash_protocol = { workspace = true, optional = true }
-zakura-wallet-lib = { version = "=0.1.0-rc9.2", default-features = false }
-uuid = "1.23.1"
+# Upstream librustzcash 0.31 cohort. Feature sets mirror what the
+# `zakura-wallet-lib` facade used to enable for the LRZ stack.
+orchard = { version = "0.16", features = ["circuit", "unstable-voting-circuits"] }
+pczt = { version = "0.10", features = ["orchard", "io-finalizer", "signer", "zcp-builder"] }
+zcash_primitives = { version = "0.31", default-features = false }
+zcash_keys = { version = "0.17", features = ["orchard"] }
+zcash_client_backend = { version = "0.25", default-features = false, features = ["orchard", "lightwalletd-tonic", "lightwalletd-tonic-tls-webpki-roots"] }
+zcash_client_sqlite = { version = "0.23", optional = true, default-features = false, features = ["orchard"] }
+zcash_protocol = { workspace = true }
+uuid = { version = "1.23.1", features = ["v4"] }
 
 [dev-dependencies]
 anyhow = "1"

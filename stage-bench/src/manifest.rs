@@ -188,11 +188,7 @@ fn profile() -> &'static str {
 }
 
 fn backend() -> &'static str {
-    if cfg!(feature = "lrz") {
-        "lrz"
-    } else {
-        "zakura"
-    }
+    "lrz"
 }
 
 fn now_unix() -> u64 {

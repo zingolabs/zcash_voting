@@ -5,7 +5,7 @@
 
 pub(super) use crate::{
     delegate::{DelegationProgress, DelegationSubmission, SignedDelegationBundle},
-    delegation_pipeline::{DelegationDriver, DelegationSigner, KeystoneSignatureSource},
+    delegation_driver::{DelegationDriver, DelegationSigner, KeystoneSignatureSource},
     governance::BUNDLE_NOTE_SLOTS,
     pir::PirFleet,
     session::{Decision, NextStep},

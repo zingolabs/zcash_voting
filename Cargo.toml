@@ -7,9 +7,8 @@ members = [
     "vote-commitment-tree-client",
     "wallet-example",
 ]
-# The default root build is the Zakura application path. LRZ and the
-# lower-level VCT packages are validated in separate invocations because their
-# backend features are mutually exclusive within one Cargo resolve.
+# The default root build is the LRZ (upstream librustzcash 0.31) application
+# path. The wallet-database seam is opt-in per application crate.
 default-members = [
     "zcash_voting",
     "wallet-example",
@@ -17,12 +16,9 @@ default-members = [
 resolver = "2"
 
 [workspace.dependencies]
-voting-circuits = { version = "=0.14.0", default-features = false }
-voting-crypto-deps = { version = "=0.4.0", default-features = false }
-# Zakura 4.0 publishes protocol as `zakura-protocol` with lib name `zcash_protocol`.
-# Packages select one of these through the `zakura` / `lrz` features.
-zcash_protocol = { version = "=4.0.0", package = "zakura-protocol", default-features = false }
-lrz_zcash_protocol = { version = "0.11.0-pre.0", package = "zcash_protocol" }
+voting-circuits = { version = "=0.14.0", default-features = false, features = ["lrz"] }
+voting-crypto-deps = { version = "=0.4.0", default-features = false, features = ["lrz"] }
+zcash_protocol = { version = "0.11.0", default-features = false }
 
 [profile.test.package.imt-tree]
 opt-level = 3

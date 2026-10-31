@@ -1,27 +1,35 @@
 //! Wallet note selection helpers for voting snapshots.
 
+#[cfg(feature = "wallet-db")]
+pub(crate) use crate::backend::zcash_client_sqlite;
 #[allow(unused_imports)]
-pub(crate) use crate::backend::{
-    orchard, zcash_client_backend, zcash_client_sqlite, zcash_primitives,
-};
+pub(crate) use crate::backend::{orchard, zcash_client_backend, zcash_primitives};
+// The remainder of the module is the wallet-database seam; only
+// `DelegationWalletInputs` is available without it.
+#[cfg(feature = "wallet-db")]
 use std::borrow::Borrow;
 
+use crate::delegate::DelegationKeys;
+#[cfg(feature = "wallet-db")]
 use crate::shielded_protocol::VotingShieldedProtocol;
+#[cfg(feature = "wallet-db")]
 use crate::storage::VotingDb;
-use crate::{
-    delegate::DelegationKeys,
-    types::{
-        Network, NoteInfo, NoteRef, RoundBoundVotingHotkeyTarget, SelectedNotes, VotingError,
-        VotingHotkey,
-    },
+use crate::types::NoteInfo;
+#[cfg(feature = "wallet-db")]
+use crate::types::{
+    Network, NoteRef, RoundBoundVotingHotkeyTarget, SelectedNotes, VotingError, VotingHotkey,
 };
 
+#[cfg(feature = "wallet-db")]
 use zcash_client_backend::{
     data_api::{Account, WalletRead},
     proto::service::TreeState,
 };
+#[cfg(feature = "wallet-db")]
 use zcash_client_sqlite::util::SystemClock;
+#[cfg(feature = "wallet-db")]
 use zcash_client_sqlite::{AccountUuid, WalletDb};
+#[cfg(feature = "wallet-db")]
 use zcash_protocol::consensus::{BlockHeight, Parameters};
 
 /// Wallet-derived notes, anchor, and keys needed for delegation precompute.
@@ -33,6 +41,7 @@ pub struct DelegationWalletInputs {
 }
 
 /// Parameters for gathering delegation inputs from a caller-opened wallet DB.
+#[cfg(feature = "wallet-db")]
 pub struct GatherDelegationWalletParams<'a, C, P, CL, R> {
     pub wallet_db: &'a WalletDb<C, P, CL, R>,
     pub account_uuid: &'a str,
@@ -44,6 +53,7 @@ pub struct GatherDelegationWalletParams<'a, C, P, CL, R> {
 }
 
 /// Parameters for gathering delegation inputs for a public round-bound target.
+#[cfg(feature = "wallet-db")]
 pub(crate) struct GatherDelegationWalletForTargetParams<'a, C, P, CL, R> {
     pub wallet_db: &'a WalletDb<C, P, CL, R>,
     pub account_uuid: &'a str,
@@ -64,6 +74,7 @@ pub(crate) struct GatherDelegationWalletForTargetParams<'a, C, P, CL, R> {
 ///
 /// Returns an error if the wallet DB network does not match `network`, the
 /// wallet is not scanned through `snapshot_height`, or note selection fails.
+#[cfg(feature = "wallet-db")]
 pub fn select_notes_with_wallet_db<C, P, CL, R>(
     wallet_db: &WalletDb<C, P, CL, R>,
     network: Network,
@@ -85,6 +96,7 @@ where
     )
 }
 
+#[cfg(feature = "wallet-db")]
 pub(crate) fn observe_select_notes_with_wallet_db<C, P, CL, R>(
     wallet_db: &WalletDb<C, P, CL, R>,
     network: Network,
@@ -135,6 +147,7 @@ where
 ///
 /// Returns an error if lightwalletd cannot provide the snapshot anchor, the
 /// wallet DB cannot be opened, or [`select_notes_with_wallet_db`] fails.
+#[cfg(feature = "wallet-db")]
 pub async fn select_notes_with_lwd(
     voting_db: &VotingDb,
     db_path: &str,
@@ -153,6 +166,7 @@ pub async fn select_notes_with_lwd(
     .await
 }
 
+#[cfg(feature = "wallet-db")]
 pub(crate) async fn observe_select_notes_with_lwd(
     voting_db: &VotingDb,
     db_path: &str,
@@ -204,6 +218,7 @@ pub(crate) async fn observe_select_notes_with_lwd(
     operation_result
 }
 
+#[cfg(feature = "wallet-db")]
 struct SnapshotNote {
     position: u64,
     output_index: u32,
@@ -213,6 +228,7 @@ struct SnapshotNote {
 
 /// Selects snapshot-eligible notes and returns wallet/display metadata
 /// plus the caller-supplied anchor tree state.
+#[cfg(feature = "wallet-db")]
 pub fn select_snapshot_notes<C, P, CL, R>(
     db: &WalletDb<C, P, CL, R>,
     account_uuid: &str,
@@ -232,6 +248,7 @@ where
     )
 }
 
+#[cfg(feature = "wallet-db")]
 pub(crate) fn observe_select_snapshot_notes<C, P, CL, R>(
     db: &WalletDb<C, P, CL, R>,
     account_uuid: &str,
@@ -269,6 +286,7 @@ where
 }
 
 /// Selects snapshot-eligible notes in the proof-input shape.
+#[cfg(feature = "wallet-db")]
 pub fn select_snapshot_note_infos<C, P, CL, R>(
     db: &WalletDb<C, P, CL, R>,
     account_uuid: &str,
@@ -286,6 +304,7 @@ where
     )
 }
 
+#[cfg(feature = "wallet-db")]
 pub(crate) fn observe_select_snapshot_note_infos<C, P, CL, R>(
     db: &WalletDb<C, P, CL, R>,
     account_uuid: &str,
@@ -329,6 +348,7 @@ where
 /// account/key material, a hotkey for the wrong network, empty note selections,
 /// unsynced wallets, or snapshot heights outside the librustzcash height range.
 /// Wallet DB read failures are returned as [`VotingError::Internal`].
+#[cfg(feature = "wallet-db")]
 pub fn gather_delegation_wallet_inputs<C, P, CL, R>(
     params: GatherDelegationWalletParams<'_, C, P, CL, R>,
 ) -> Result<DelegationWalletInputs, VotingError>
@@ -339,6 +359,7 @@ where
     observe_gather_delegation_wallet_inputs(params, &crate::ObservationScope::disabled())
 }
 
+#[cfg(feature = "wallet-db")]
 pub(crate) fn observe_gather_delegation_wallet_inputs<C, P, CL, R>(
     params: GatherDelegationWalletParams<'_, C, P, CL, R>,
     observations: &crate::ObservationScope,
@@ -388,6 +409,7 @@ where
 /// account/key material, a target for the wrong network, empty note selections,
 /// unsynced wallets, or unsupported snapshot heights. Wallet DB read failures
 /// are returned as [`VotingError::Internal`].
+#[cfg(feature = "wallet-db")]
 pub(crate) fn gather_delegation_wallet_inputs_for_target<C, P, CL, R>(
     params: GatherDelegationWalletForTargetParams<'_, C, P, CL, R>,
     observations: &crate::ObservationScope,
@@ -410,11 +432,13 @@ where
     )
 }
 
+#[cfg(feature = "wallet-db")]
 enum GatherDelegationTarget<'a> {
     Hotkey(&'a VotingHotkey),
     RoundBound(&'a RoundBoundVotingHotkeyTarget),
 }
 
+#[cfg(feature = "wallet-db")]
 impl GatherDelegationTarget<'_> {
     fn network(&self) -> Network {
         match self {
@@ -456,6 +480,7 @@ impl GatherDelegationTarget<'_> {
     }
 }
 
+#[cfg(feature = "wallet-db")]
 struct GatherDelegationWalletCommonParams<'a, C, P, CL, R> {
     wallet_db: &'a WalletDb<C, P, CL, R>,
     account_uuid: &'a str,
@@ -466,6 +491,7 @@ struct GatherDelegationWalletCommonParams<'a, C, P, CL, R> {
     resolved_round_name: String,
 }
 
+#[cfg(feature = "wallet-db")]
 fn gather_delegation_wallet_inputs_impl<C, P, CL, R>(
     params: GatherDelegationWalletCommonParams<'_, C, P, CL, R>,
     observations: &crate::ObservationScope,
@@ -513,6 +539,7 @@ where
     })
 }
 
+#[cfg(feature = "wallet-db")]
 fn select_snapshot_note_entries<C, P, CL, R>(
     db: &WalletDb<C, P, CL, R>,
     account_uuid: &str,
@@ -613,6 +640,7 @@ where
     Ok(notes)
 }
 
+#[cfg(feature = "wallet-db")]
 fn ensure_wallet_network<P>(wallet_network: &P, network: Network) -> Result<(), VotingError>
 where
     P: Parameters,
@@ -643,6 +671,7 @@ where
 ///
 /// The birthday query runs only on the fallback path, so the common case stays
 /// one indexed `scan_queue` row plus one `blocks` row.
+#[cfg(feature = "wallet-db")]
 pub(crate) fn wallet_fully_scanned_height<C, P, CL, R>(
     wallet_db: &WalletDb<C, P, CL, R>,
 ) -> Result<u64, VotingError>
@@ -668,6 +697,7 @@ where
     Ok(height.map_or(0, |height| u64::from(u32::from(height))))
 }
 
+#[cfg(feature = "wallet-db")]
 fn ensure_wallet_scanned_to_snapshot<C, P, CL, R>(
     wallet_db: &WalletDb<C, P, CL, R>,
     snapshot_height: u64,
@@ -688,6 +718,7 @@ where
     }
 }
 
+#[cfg(feature = "wallet-db")]
 fn parse_account_uuid(account_uuid: &str) -> Result<AccountUuid, VotingError> {
     let uuid = uuid::Uuid::parse_str(account_uuid).map_err(|e| VotingError::InvalidInput {
         message: format!("invalid account UUID: {e}"),
@@ -695,6 +726,7 @@ fn parse_account_uuid(account_uuid: &str) -> Result<AccountUuid, VotingError> {
     Ok(AccountUuid::from_uuid(uuid))
 }
 
+#[cfg(feature = "wallet-db")]
 #[cfg(test)]
 mod tests {
     use super::*;

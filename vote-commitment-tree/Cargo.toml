@@ -8,17 +8,14 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/valargroup/zcash_voting"
 readme = "README.md"
 
-[features]
-default = ["zakura"]
-zakura = ["imt-tree/zakura", "voting-crypto-deps/default", "voting-circuits/default"]
-lrz = ["imt-tree/upstream", "voting-crypto-deps/lrz", "voting-circuits/lrz"]
-
 [dependencies]
-imt-tree = { version = "=0.7.0", default-features = false }
+imt-tree = { version = "=0.7.0", default-features = false, features = ["upstream"] }
 voting-crypto-deps = { workspace = true }
 anyhow = "1.0"
-incrementalmerkletree = "0.8.1"
-shardtree = "0.7"
+# Single-stack LRZ: the incrementalmerkletree 0.9 / shardtree 0.8 generation
+# behind orchard 0.16.
+incrementalmerkletree = "0.9"
+shardtree = "0.8"
 lazy_static = "1"
 libc = "0.2"
 

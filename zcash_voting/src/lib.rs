@@ -17,17 +17,6 @@
 //! tree positions. See [`chain_submission`] for the removed version-17
 //! mutation APIs and the compile-time checks that keep them removed.
 
-#[cfg(all(feature = "lrz", feature = "zakura"))]
-compile_error!("features `lrz` and `zakura` cannot be enabled together");
-
-#[cfg(not(any(feature = "lrz", feature = "zakura")))]
-compile_error!("enable exactly one of the `lrz` or `zakura` features");
-
-// LRZ selects crates.io `zcash_protocol` under a renamed dependency key. Alias
-// it back so the rest of the crate can keep `use zcash_protocol::...`.
-#[cfg(feature = "lrz")]
-extern crate lrz_zcash_protocol as zcash_protocol;
-
 pub mod action;
 pub mod backend;
 pub mod chain_submission;
@@ -35,6 +24,16 @@ pub mod config;
 pub(crate) mod confirmation;
 pub mod delegate;
 pub mod delegation_capability;
+/// The seam-free delegation contracts ([`DelegationDriver`] and the signer
+/// types) the round executor drives. Compiled in every configuration; hosts
+/// implement [`DelegationDriver`] with their own wallet plumbing where the
+/// wallet-database seam is compiled out.
+pub mod delegation_driver;
+/// Wallet-database-driven end-to-end delegation pipeline.
+///
+/// Only compiled where the wallet-database seam exists (`zakura`, or `lrz`
+/// with the opt-in `wallet-db` feature).
+#[cfg(feature = "wallet-db")]
 pub mod delegation_pipeline;
 mod delegation_proof_coordination;
 pub mod error;
@@ -105,9 +104,12 @@ pub use chain_submission::{
     ChainSubmissionTarget, ChainTransport, ChainTransportError, ChainTransportFailureKind,
     ChainTransportFuture, MAX_CHAIN_HTTP_RESPONSE_BYTES, MAX_CHAIN_SUBMISSION_DIAGNOSTIC_BYTES,
 };
+pub use delegation_driver::{
+    DelegationDriver, DelegationSigner, KeystoneSignatureSource, SpendAuthSigner,
+};
+#[cfg(feature = "wallet-db")]
 pub use delegation_pipeline::{
-    start_proving_cache_warmup, DelegationDriver, DelegationPipeline, DelegationSigner,
-    KeystoneSignatureSource, SpendAuthSigner, SqliteWalletDbOpener, VotingEligibilityReport,
+    start_proving_cache_warmup, DelegationPipeline, SqliteWalletDbOpener, VotingEligibilityReport,
     WalletDbOpener,
 };
 pub use error::{DelegationSetupField, VotingErrorKind, VotingErrorKindView, VotingErrorView};
@@ -166,9 +168,11 @@ pub use note_bundling::{
     MINIMUM_VOTING_WEIGHT_ZATOSHI,
 };
 pub use round::validate_bundle_index;
+pub use selection::DelegationWalletInputs;
+#[cfg(feature = "wallet-db")]
 pub use selection::{
     gather_delegation_wallet_inputs, select_notes_with_wallet_db, select_snapshot_notes,
-    DelegationWalletInputs, GatherDelegationWalletParams,
+    GatherDelegationWalletParams,
 };
 pub use types::{
     validate_proposal_id, validate_round_params, validate_vote_decision, validate_vote_options,
