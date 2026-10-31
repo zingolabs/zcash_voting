@@ -57,7 +57,12 @@ tonic = { version = "0.14", features = ["channel", "tls-webpki-roots", "tls-ring
 vote-commitment-tree = { path = "../vote-commitment-tree", version = "=0.8.0" }
 vote-commitment-tree-client = { path = "../vote-commitment-tree-client", version = "=0.10.0", features = ["http"] }
 
-rusqlite = { version = "0.37", features = ["bundled"] }
+# Tolerant range, deliberately not a pin: the rusqlite generation is decided
+# by the consumer's graph. zingolib pins =0.32.1 (the libsqlite3-sys 0.30.x
+# mapping its workspace is welded to via sqlx), so there zcash_voting resolves
+# at 0.32.1; here it floats to 0.37 to match zcash_client_sqlite 0.23. The
+# storage layer compiles against both generations unchanged.
+rusqlite = { version = ">=0.32, <0.38", features = ["bundled"] }
 
 anyhow = "1"
 thiserror = "2"

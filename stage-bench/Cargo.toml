@@ -21,7 +21,7 @@ wallet-db = ["zcash_voting/wallet-db"]
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 recovery-conformance = { path = "../recovery-conformance" }
-rusqlite = { version = "0.37", features = ["bundled"] }
+rusqlite = { version = ">=0.32, <0.38", features = ["bundled"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
