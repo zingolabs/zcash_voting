@@ -724,9 +724,6 @@ pub(crate) fn build_governance_pczt(
 
         // Run IO Finalizer so the Signer (Keystone) can compute the sighash.
         let finalizer = pczt::roles::io_finalizer::IoFinalizer::new(pczt);
-        #[cfg(feature = "zakura")]
-        let finalized = finalizer.finalize_io();
-        #[cfg(feature = "lrz")]
         let finalized = finalizer.finalize_io(voting_crypto_deps::rand::rngs::OsRng);
         let pczt = finalized.map_err(|e| VotingError::Internal {
             message: format!("IoFinalizer::finalize_io failed: {:?}", e),

@@ -25,15 +25,6 @@
 
 // -- Modules ---------------------------------------------------------------
 
-// LRZ selects `incrementalmerkletree` 0.9 / `shardtree` 0.8 (the versions
-// behind orchard 0.16) under renamed dependency keys. Alias them back so the
-// implementation keeps using the unversioned crate names; the aliases are
-// public so `vote_commitment_tree::incrementalmerkletree` stays reachable.
-#[cfg(feature = "lrz")]
-pub extern crate lrz_incrementalmerkletree as incrementalmerkletree;
-#[cfg(feature = "lrz")]
-extern crate lrz_shardtree as shardtree;
-
 mod anchor;
 pub mod client;
 mod hash;
@@ -47,9 +38,6 @@ pub mod sync_api;
 // -- Re-exports (public API) -----------------------------------------------
 
 /// The tree API used by this crate, independent of the selected Orchard backend.
-/// Under `lrz` the public `extern crate` alias above already publishes the
-/// selected `incrementalmerkletree` under this path.
-#[cfg(feature = "zakura")]
 pub use incrementalmerkletree;
 
 pub use anchor::Anchor;

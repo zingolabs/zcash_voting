@@ -11,9 +11,7 @@
 use std::sync::Arc;
 
 use crate::{
-    delegate::{
-        DelegationProofStatus, DelegationSigningRequest, PreparedSigner, SignedDelegationBundle,
-    },
+    delegate::{DelegationProofStatus, DelegationSigningRequest, SignedDelegationBundle},
     pir::PirFleet,
     types::{DelegationProgressReporter, Network, VotingError, VotingHotkeyTarget},
 };

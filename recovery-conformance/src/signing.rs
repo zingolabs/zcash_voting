@@ -117,11 +117,6 @@ pub fn wallet_matches_seed(wallet_db: &std::path::Path, seed: &[u8]) -> Result<b
     )
     .map_err(|error| anyhow::anyhow!("deriving the viewing key: {error:?}"))?
     .to_unified_full_viewing_key();
-    // `UnifiedFullViewingKey::encode` is infallible under `zakura` and returns
-    // a `Result` under `lrz`.
-    #[cfg(feature = "zakura")]
-    let derived = derived.encode(&crate::environment::ZCASH_NETWORK);
-    #[cfg(feature = "lrz")]
     let derived = derived
         .encode(&crate::environment::ZCASH_NETWORK)
         .map_err(|error| anyhow::anyhow!("encoding the viewing key: {error:?}"))?;

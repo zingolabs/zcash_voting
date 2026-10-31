@@ -8,35 +8,14 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/valargroup/zcash_voting"
 readme = "README.md"
 
-[features]
-default = ["zakura"]
-zakura = [
-    "imt-tree/zakura",
-    "voting-crypto-deps/default",
-    "voting-circuits/default",
-    "dep:incrementalmerkletree",
-    "dep:shardtree",
-]
-lrz = [
-    "imt-tree/upstream",
-    "voting-crypto-deps/lrz",
-    "voting-circuits/lrz",
-    "dep:lrz_incrementalmerkletree",
-    "dep:lrz_shardtree",
-]
-
 [dependencies]
-imt-tree = { version = "=0.7.0", default-features = false }
+imt-tree = { version = "=0.7.0", default-features = false, features = ["upstream"] }
 voting-crypto-deps = { workspace = true }
 anyhow = "1.0"
-# The LRZ stack builds against `incrementalmerkletree` 0.9 / `shardtree` 0.8
-# (the versions behind orchard 0.16), while the Zakura stack stays on
-# 0.8 / 0.7. The same package is listed once per backend under a backend-only
-# rename so a single resolve never pulls both semver-incompatible copies.
-incrementalmerkletree = { version = "0.8.1", optional = true }
-lrz_incrementalmerkletree = { version = "0.9", package = "incrementalmerkletree", optional = true }
-shardtree = { version = "0.7", optional = true }
-lrz_shardtree = { version = "0.8", package = "shardtree", optional = true }
+# Single-stack LRZ: the incrementalmerkletree 0.9 / shardtree 0.8 generation
+# behind orchard 0.16.
+incrementalmerkletree = "0.9"
+shardtree = "0.8"
 lazy_static = "1"
 libc = "0.2"
 

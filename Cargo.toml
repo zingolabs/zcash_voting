@@ -6,28 +6,9 @@ members = [
     "vote-commitment-tree",
     "vote-commitment-tree-client",
     "wallet-example",
-    # The patched packages below must be workspace members so cargo discovers
-    # them when this repository is used as a *git* patch source from outside
-    # (git patches only see workspace members). They are deliberately not in
-    # default-members: the default root build stays the Zakura application
-    # path and never builds or selects them.
-    "fork/zakura-wallet-lib",
-    "fork/vendored/zcash_client_sqlite-0.23.0",
-    "fork/vendored/zakura-client-sqlite-0.1.0-rc9.5",
-    "fork/vendored/zakura-client-backend-0.1.0-rc9.5",
-    "fork/vendored/zcash_protocol-0.11.0",
-    "fork/vendored/schemerz-rusqlite-0.371.0",
-    "fork/vendored/zcash_client_backend-0.25.0",
-    "fork/vendored/zcash_primitives-0.31.0",
-    "fork/vendored/zcash_keys-0.17.0",
-    "fork/vendored/zcash_address-0.14.0",
-    "fork/vendored/zcash_transparent-0.11.0",
-    "fork/vendored/zcash_pool_migration-0.2.0",
-    "fork/vendored/zip321-0.10.0",
 ]
-# The default root build is the Zakura application path. LRZ and the
-# lower-level VCT packages are validated in separate invocations because their
-# backend features are mutually exclusive within one Cargo resolve.
+# The default root build is the LRZ (upstream librustzcash 0.31) application
+# path. The wallet-database seam is opt-in per application crate.
 default-members = [
     "zcash_voting",
     "wallet-example",
@@ -35,33 +16,9 @@ default-members = [
 resolver = "2"
 
 [workspace.dependencies]
-voting-circuits = { version = "=0.14.0", default-features = false }
-voting-crypto-deps = { version = "=0.4.0", default-features = false }
-# Zakura 4.0 publishes protocol as `zakura-protocol` with lib name `zcash_protocol`.
-# Packages select one of these through the `zakura` / `lrz` features.
-zcash_protocol = { version = "=4.0.0", package = "zakura-protocol", default-features = false }
-lrz_zcash_protocol = { version = "0.11.0", package = "zcash_protocol" }
-
-# Local forks and test-only vendored copies used while porting the LRZ stack.
-# `zakura-wallet-lib` is a zingolabs fork of the facade with the LRZ
-# wallet-database slice split into the opt-in `lrz-client-sqlite` feature; the
-# two vendored librustzcash sqlite crates are re-based onto rusqlite 0.32 so
-# the `lrz` + `wallet-db` test builds unify at libsqlite3-sys 0.30.x instead of
-# conflicting with rusqlite 0.37's libsqlite3-sys 0.35 on `links = "sqlite3"`.
-[patch.crates-io]
-zakura-wallet-lib = { path = "fork/zakura-wallet-lib" }
-zcash_client_sqlite = { path = "fork/vendored/zcash_client_sqlite-0.23.0" }
-zakura-client-sqlite = { path = "fork/vendored/zakura-client-sqlite-0.1.0-rc9.5" }
-zakura-client-backend = { path = "fork/vendored/zakura-client-backend-0.1.0-rc9.5" }
-zcash_protocol = { path = "fork/vendored/zcash_protocol-0.11.0" }
-zcash_client_backend = { path = "fork/vendored/zcash_client_backend-0.25.0" }
-zcash_primitives = { path = "fork/vendored/zcash_primitives-0.31.0" }
-zcash_keys = { path = "fork/vendored/zcash_keys-0.17.0" }
-zcash_address = { path = "fork/vendored/zcash_address-0.14.0" }
-zcash_transparent = { path = "fork/vendored/zcash_transparent-0.11.0" }
-zcash_pool_migration = { path = "fork/vendored/zcash_pool_migration-0.2.0" }
-zip321 = { path = "fork/vendored/zip321-0.10.0" }
-schemerz-rusqlite = { path = "fork/vendored/schemerz-rusqlite-0.371.0" }
+voting-circuits = { version = "=0.14.0", default-features = false, features = ["lrz"] }
+voting-crypto-deps = { version = "=0.4.0", default-features = false, features = ["lrz"] }
+zcash_protocol = { version = "0.11.0", default-features = false }
 
 [profile.test.package.imt-tree]
 opt-level = 3

@@ -1,8 +1,8 @@
-#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+#[cfg(feature = "wallet-db")]
 pub(crate) use crate::backend::zcash_client_sqlite;
 #[allow(unused_imports)]
 pub(crate) use crate::backend::{orchard, pasta_curves, zcash_client_backend, zcash_primitives};
-#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+#[cfg(feature = "wallet-db")]
 use std::borrow::Borrow;
 
 use crate::{
@@ -18,7 +18,7 @@ use voting_crypto_deps::incrementalmerkletree::{
     frontier::CommitmentTree, Hashable, Level, MerklePath, Position,
 };
 use zcash_client_backend::proto::service::TreeState;
-#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+#[cfg(feature = "wallet-db")]
 use zcash_client_sqlite::WalletDb;
 use zcash_protocol::consensus::{BlockHeight, Parameters};
 
@@ -28,7 +28,7 @@ use zcash_protocol::consensus::{BlockHeight, Parameters};
 /// path, network, and FFI handling differ by client. This helper owns the shared
 /// voting invariant: the cached tree state is the round snapshot anchor used to
 /// generate and store Merkle witnesses for one bundle.
-#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+#[cfg(feature = "wallet-db")]
 pub fn store_tree_state_and_generate_note_witnesses<C, P, CL, R>(
     db: &VotingDb,
     round_id: &str,
@@ -52,7 +52,7 @@ where
     )
 }
 
-#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+#[cfg(feature = "wallet-db")]
 pub(crate) fn observe_store_tree_state_and_generate_note_witnesses<C, P, CL, R>(
     db: &VotingDb,
     round_id: &str,
@@ -104,7 +104,7 @@ where
 /// round height and note commitment root before the wallet source is asked for
 /// historical witnesses.
 #[allow(unreachable_code, unused_variables)]
-#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+#[cfg(feature = "wallet-db")]
 pub fn generate_note_witnesses<C, P, CL, R>(
     db: &VotingDb,
     round_id: &str,
@@ -124,7 +124,7 @@ where
     )
 }
 
-#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+#[cfg(feature = "wallet-db")]
 pub(crate) fn observe_generate_note_witnesses<C, P, CL, R>(
     db: &VotingDb,
     round_id: &str,
@@ -258,7 +258,7 @@ where
     operation_result
 }
 
-#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+#[cfg(feature = "wallet-db")]
 fn validate_wallet_db_network_for_round<C, P, CL, R>(
     db: &VotingDb,
     round_id: &str,
@@ -273,7 +273,7 @@ where
     validate_wallet_network(stored_network, wallet_db)
 }
 
-#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+#[cfg(feature = "wallet-db")]
 fn validate_wallet_network<C, P, CL, R>(
     stored_network: Network,
     wallet_db: &WalletDb<C, P, CL, R>,
@@ -414,7 +414,7 @@ fn ct_option_to_result(
     })
 }
 
-#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+#[cfg(feature = "wallet-db")]
 #[cfg(test)]
 mod tests {
     use super::*;

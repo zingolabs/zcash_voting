@@ -20,9 +20,6 @@
 //! Deliberately outside the workspace default members: it needs the network,
 //! it kills processes, and it must never run as part of `make test`.
 
-#[cfg(feature = "lrz")]
-extern crate lrz_zcash_protocol as zcash_protocol;
-
 pub mod assertions;
 pub mod chain_reads;
 pub mod child;
@@ -33,6 +30,7 @@ pub mod matrix_coverage;
 pub mod precompute;
 pub mod provisioning;
 pub mod recrash;
+#[cfg(feature = "wallet-db")]
 pub mod round_run;
 pub mod run_config;
 pub mod setup_preservation;
@@ -41,6 +39,7 @@ pub mod signing;
 pub mod stage_config;
 pub mod stages;
 pub mod stall;
+#[cfg(feature = "wallet-db")]
 pub mod wallet_sync;
 
 pub use chain_reads::{ChainReadLedger, CountingRoute};

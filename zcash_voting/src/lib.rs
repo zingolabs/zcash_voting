@@ -17,17 +17,6 @@
 //! tree positions. See [`chain_submission`] for the removed version-17
 //! mutation APIs and the compile-time checks that keep them removed.
 
-#[cfg(all(feature = "lrz", feature = "zakura"))]
-compile_error!("features `lrz` and `zakura` cannot be enabled together");
-
-#[cfg(not(any(feature = "lrz", feature = "zakura")))]
-compile_error!("enable exactly one of the `lrz` or `zakura` features");
-
-// LRZ selects crates.io `zcash_protocol` under a renamed dependency key. Alias
-// it back so the rest of the crate can keep `use zcash_protocol::...`.
-#[cfg(feature = "lrz")]
-extern crate lrz_zcash_protocol as zcash_protocol;
-
 pub mod action;
 pub mod backend;
 pub mod chain_submission;
@@ -44,7 +33,7 @@ pub mod delegation_driver;
 ///
 /// Only compiled where the wallet-database seam exists (`zakura`, or `lrz`
 /// with the opt-in `wallet-db` feature).
-#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+#[cfg(feature = "wallet-db")]
 pub mod delegation_pipeline;
 mod delegation_proof_coordination;
 pub mod error;
@@ -118,7 +107,7 @@ pub use chain_submission::{
 pub use delegation_driver::{
     DelegationDriver, DelegationSigner, KeystoneSignatureSource, SpendAuthSigner,
 };
-#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+#[cfg(feature = "wallet-db")]
 pub use delegation_pipeline::{
     start_proving_cache_warmup, DelegationPipeline, SqliteWalletDbOpener, VotingEligibilityReport,
     WalletDbOpener,
@@ -180,7 +169,7 @@ pub use note_bundling::{
 };
 pub use round::validate_bundle_index;
 pub use selection::DelegationWalletInputs;
-#[cfg(any(feature = "zakura", feature = "wallet-db"))]
+#[cfg(feature = "wallet-db")]
 pub use selection::{
     gather_delegation_wallet_inputs, select_notes_with_wallet_db, select_snapshot_notes,
     GatherDelegationWalletParams,

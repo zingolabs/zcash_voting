@@ -25,10 +25,11 @@ fn main() -> anyhow::Result<()> {
             let index = voting_crypto_deps::zip32::AccountId::try_from(account)
                 .map_err(|_| anyhow::anyhow!("bad account index"))?;
             if let Ok(usk) = UnifiedSpendingKey::from_seed(&Network::Testnet, seed, index) {
-                println!(
-                    "{label} account {account}: {}",
-                    usk.to_unified_full_viewing_key().encode(&Network::Testnet)
-                );
+                let ufvk = usk
+                    .to_unified_full_viewing_key()
+                    .encode(&Network::Testnet)
+                    .map_err(|error| anyhow::anyhow!("encoding the viewing key: {error:?}"))?;
+                println!("{label} account {account}: {ufvk}");
             }
         }
     }

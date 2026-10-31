@@ -6,8 +6,6 @@
 //! [`crate::delegation_driver`]; this module resolves them against the
 //! pipeline's prepared bundles and sidecar rows.
 
-use std::sync::Arc;
-
 use crate::{
     delegate::{PreparedDelegationBundle, PreparedSigner, SignedDelegationBundle},
     types::VotingError,
